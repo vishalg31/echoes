@@ -1,0 +1,259 @@
+/* ==========================================================================
+   Echoes — global styles + constant dark shell (art-led identity, 2026-06-18)
+   The shell never changes: near-black surfaces, Bricolage + Inter, ONE locked
+   signature accent. Per-song personality comes from the album-art "mood" layer
+   (--mood-* on cards, --page-deep/--page-deep2 on the page background), so the
+   brand stays constant while the colour breathes with the music.
+   ========================================================================== */
+
+/* Animatable page-mood colours (transition smoothly when the song changes) */
+@property --page-deep {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #15101f;
+}
+@property --page-deep2 {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #1c1530;
+}
+
+:root,
+:root[data-theme="neutral-dark"] {
+  /* Surfaces — deep aubergine, layered (monochromatic plum shell) */
+  --bg-primary: #15101f;
+  --bg-secondary: #1c1530;
+  --card-bg: #211836;
+  --card-bg-alt: #2a2042;
+  --elevated: #2e2348;
+
+  /* Text */
+  --text-primary: #f5f2f8;
+  --text-muted: #aba2b6;
+  --text-faint: #6e6678;
+
+  /* Signature accent — flat plum (small accents, borders, focus) */
+  --accent-primary: #c84ba0;
+  --accent-soft: rgba(200, 75, 160, 0.16);
+  --accent-text: #e25aa6;
+
+  /* Brand gradient — the constant Echoes identity (wordmark, CTAs, hero).
+     Never overridden by per-artist themes or per-song mood. */
+  --brand-grad-from: #5e2a6e;
+  --brand-grad-via: #9b3c8c;
+  --brand-grad-to: #e25aa6;
+  --brand-gradient: linear-gradient(
+    120deg,
+    var(--brand-grad-from),
+    var(--brand-grad-via),
+    var(--brand-grad-to)
+  );
+
+  /* Lines */
+  --border: rgba(225, 180, 255, 0.09);
+  --border-card: rgba(225, 180, 255, 0.07);
+  --progress-track: rgba(225, 180, 255, 0.14);
+
+  /* Page-mood (set live from album art; these are the resting defaults) */
+  --page-deep: #15101f;
+  --page-deep2: #1c1530;
+  --page-accent-rgb: 155, 60, 140; /* top-glow colour; follows the song when playing */
+
+  /* Typography */
+  --font-display: var(--font-bricolage), "Segoe UI", system-ui, sans-serif;
+  --font-body: var(--font-geist), system-ui, -apple-system, sans-serif;
+
+  /* Surfaces */
+  --radius-card: 16px;
+  --radius-input: 12px;
+  --radius-pill: 999px;
+  --shadow-card: 0 24px 50px -28px rgba(0, 0, 0, 0.8);
+
+  /* Motion */
+  --transition: 0.25s ease;
+  --transition-slow: 0.4s ease;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  min-height: 100%;
+}
+
+/* The mobile deck flings cards far off-screen (framer transform); clip the
+   horizontal overflow so that never spawns a stray scrollbar. `clip` (not
+   `hidden`) avoids turning body into a scroll container, so the sticky topbar
+   keeps working. */
+body {
+  overflow-x: clip;
+}
+
+body {
+  /* soft plum glow at the top (follows the song when one is playing) over an
+     art-tinted wash fading into the aubergine base. --page-deep/2 animate via
+     @property when the active song changes. */
+  background:
+    radial-gradient(120% 70% at 50% -8%, rgba(var(--page-accent-rgb), 0.2), transparent 55%),
+    linear-gradient(180deg, var(--page-deep) 0%, var(--page-deep2) 28%, var(--bg-primary) 66%);
+  background-attachment: fixed;
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  transition: --page-deep var(--transition-slow), --page-deep2 var(--transition-slow);
+}
+
+/* Drifting aurora — two soft blobs that breathe behind everything. One follows
+   the playing song (--page-accent-rgb), the other holds a constant orchid brand
+   tone, so the background stays alive without pulling focus. Reduced-motion
+   freezes them in place (the keyframe is paused, not removed). */
+body::before,
+body::after {
+  content: "";
+  position: fixed;
+  z-index: 0;
+  pointer-events: none;
+  border-radius: 50%;
+  filter: blur(90px);
+  opacity: 0.42;
+  mix-blend-mode: screen;
+  will-change: transform;
+}
+body::before {
+  width: 62vw;
+  height: 62vw;
+  max-width: 720px;
+  max-height: 720px;
+  top: -18vh;
+  left: -12vw;
+  background: radial-gradient(circle, rgba(var(--page-accent-rgb), 0.55), transparent 68%);
+  animation: auroraA 28s ease-in-out infinite alternate;
+}
+body::after {
+  width: 54vw;
+  height: 54vw;
+  max-width: 640px;
+  max-height: 640px;
+  bottom: -22vh;
+  right: -14vw;
+  background: radial-gradient(circle, rgba(226, 90, 166, 0.4), transparent 70%);
+  animation: auroraB 34s ease-in-out infinite alternate;
+}
+@keyframes auroraA {
+  from { transform: translate(0, 0) scale(1); }
+  to { transform: translate(14vw, 10vh) scale(1.18); }
+}
+@keyframes auroraB {
+  from { transform: translate(0, 0) scale(1.05); }
+  to { transform: translate(-12vw, -8vh) scale(0.9); }
+}
+
+button {
+  cursor: pointer;
+  font-family: inherit;
+  border: none;
+  background: none;
+  color: inherit;
+}
+
+input {
+  font-family: inherit;
+}
+
+/* global site footer (themed via CSS vars) */
+.siteFooter {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  padding: 30px 20px 42px;
+  border-top: 1px solid var(--border);
+  background: transparent;
+}
+.siteFooterCredit {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+.siteFooterHome {
+  display: inline-block;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 9px 18px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  transition: border-color var(--transition), color var(--transition);
+}
+.siteFooterHome:hover {
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+}
+
+button:focus-visible,
+input:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+}
+
+/* Grain overlay — a fine film of fractal noise tuned for the dark plum shell.
+   Sits above the aurora but behind content, takes the edge off flat gradients.
+   A theme can still override via --texture-bg / --texture-opacity. */
+.pageTexture {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-image: var(
+    --texture-bg,
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")
+  );
+  background-size: var(--texture-size, 160px 160px);
+  background-repeat: repeat;
+  opacity: var(--texture-opacity, 0.05);
+  mix-blend-mode: overlay;
+  transition: opacity 0.6s ease;
+}
+
+/* Brand gradient helpers — the constant Echoes identity */
+.brandText {
+  background: var(--brand-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+.brandFill {
+  background: var(--brand-gradient);
+  color: #fff;
+}
+
+/* Shared entrance animation */
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-up {
+  animation: fadeUp 0.7s ease both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

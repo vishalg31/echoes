@@ -1,0 +1,330 @@
+.card {
+  background: var(--card-bg);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-card);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+  position: relative;
+}
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-card);
+}
+.card.winner {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 2px var(--accent-primary), var(--shadow-card);
+  transform: translateY(-6px) scale(1.015);
+}
+.card.dimmed {
+  opacity: 0.4;
+  filter: saturate(0.7);
+  transform: scale(0.985);
+}
+
+/* --- art-led mood: accent pulled live from this card's album art --- */
+.moodOn {
+  border-color: rgba(var(--mood-rgb), 0.32);
+}
+.moodOn:hover {
+  box-shadow: 0 22px 48px -20px rgba(var(--mood-rgb), 0.6);
+}
+.moodOn.winner {
+  border-color: var(--mood-accent);
+  box-shadow: 0 0 0 2px var(--mood-accent), 0 24px 52px -18px rgba(var(--mood-rgb), 0.65);
+}
+
+/* --- artwork: square, dominant, bleeds to the card edges --- */
+.artWrap {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  width: 100%;
+}
+.art {
+  position: absolute;
+  inset: 0;
+}
+.artScrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 55%, rgba(0, 0, 0, 0.55) 100%);
+  pointer-events: none;
+}
+.cardEq {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: grid;
+  place-items: center;
+  padding: 6px 8px;
+  border-radius: 999px;
+  background: rgba(10, 8, 16, 0.55);
+  backdrop-filter: blur(4px);
+  color: var(--mood-accent, var(--accent-primary));
+}
+.knownBadge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  backdrop-filter: blur(4px);
+}
+
+/* floating play button on the artwork (Spotify-style), tinted by the art */
+.playFab {
+  position: absolute;
+  right: 14px;
+  bottom: 14px;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 16px;
+  color: #fff;
+  background: var(--mood-accent, var(--accent-primary));
+  box-shadow: 0 10px 24px -8px rgba(0, 0, 0, 0.6);
+  opacity: 0;
+  transform: translateY(8px) scale(0.9);
+  transition: opacity var(--transition), transform var(--transition), filter var(--transition);
+}
+.card:hover .playFab,
+.playFabOn {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+.playFab:hover {
+  filter: brightness(1.1);
+  transform: translateY(0) scale(1.06);
+}
+
+.winnerOverlay {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: rgba(0, 0, 0, 0.5);
+  color: #fff;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 13px;
+  animation: winnerPop 0.5s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+}
+.winnerStar {
+  position: relative;
+  z-index: 2;
+  font-size: 40px;
+  color: var(--mood-accent, var(--accent-primary));
+  animation: starSpin 0.6s ease both;
+}
+
+/* mood-coloured burst behind the star: expanding rings + radiating sparks */
+.burstRing {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 56px;
+  height: 56px;
+  margin: -28px 0 0 -28px;
+  border-radius: 50%;
+  border: 3px solid var(--mood-accent, var(--accent-primary));
+  animation: burstRing 0.7s cubic-bezier(0.2, 0.7, 0.3, 1) forwards;
+}
+@keyframes burstRing {
+  from { transform: scale(0.25); opacity: 0.9; }
+  to { transform: scale(3.6); opacity: 0; }
+}
+.sparks {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+}
+.sparks span {
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--mood-accent, var(--accent-primary));
+  animation: spark 0.7s ease-out forwards;
+}
+@keyframes spark {
+  from { transform: rotate(var(--a)) translateY(0) scale(1); opacity: 1; }
+  to { transform: rotate(var(--a)) translateY(-78px) scale(0.2); opacity: 0; }
+}
+@keyframes winnerPop {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes starSpin {
+  from { transform: scale(0.2) rotate(-30deg); opacity: 0; }
+  to { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
+.body {
+  padding: 16px 18px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+.titleRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+.title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(18px, 2.2vw, 22px);
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+  line-height: 1.15;
+}
+.saveBtn {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  margin-top: -1px;
+  border-radius: 9px;
+  color: var(--text-faint);
+  transition: color var(--transition), background var(--transition), transform var(--transition);
+}
+.saveBtn:hover {
+  color: var(--accent-text);
+  background: var(--accent-soft);
+  transform: translateY(-1px);
+}
+.saveBtnOn {
+  color: var(--accent-text);
+}
+.meta {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.tag {
+  font-size: 11px;
+  font-weight: 500;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(var(--mood-rgb), 0.16);
+  color: var(--mood-text, var(--accent-text));
+}
+.moodOn .tag {
+  background: rgba(var(--mood-rgb), 0.16);
+  color: var(--mood-text, var(--accent-text));
+}
+.why {
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin: 2px 0 4px;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 6px;
+}
+/* each action carries its own hue via --act; resting state is a faint tint,
+   the icon holds the colour, hover deepens it. */
+.action {
+  --act: var(--text-faint);
+  flex: 1 1 auto;
+  min-width: 104px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 11px 12px;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--act) 26%, transparent);
+  background: color-mix(in srgb, var(--act) 9%, transparent);
+  color: var(--text-primary);
+  transition: all var(--transition);
+  text-align: center;
+}
+.action svg {
+  color: var(--act);
+}
+.action:hover {
+  background: color-mix(in srgb, var(--act) 20%, transparent);
+  border-color: var(--act);
+}
+.actKnow {
+  --act: #3ecf8e;
+}
+.actSkip {
+  --act: #ef6b7d;
+}
+.actMore {
+  --act: #5ab0e8;
+}
+/* known = locked-in green */
+.action.on {
+  --act: #3ecf8e;
+  background: color-mix(in srgb, var(--act) 22%, transparent);
+  border-color: var(--act);
+}
+/* pick winner = gold, the standout */
+.primary {
+  --act: #f5b73e;
+  background: linear-gradient(135deg, #f5b73e, #e0962a);
+  border-color: transparent;
+  color: #1a1228;
+  font-weight: 700;
+}
+.primary svg {
+  color: #1a1228;
+}
+.primary:hover {
+  background: linear-gradient(135deg, #f5b73e, #e0962a);
+  border-color: transparent;
+  filter: brightness(1.07);
+}
+
+@media (max-width: 600px) {
+  .actions {
+    flex-direction: column;
+  }
+  .action {
+    width: 100%;
+    min-height: 46px;
+    font-size: 14px;
+    padding: 13px 16px;
+  }
+  .playFab {
+    opacity: 1;
+    transform: none;
+    width: 56px;
+    height: 56px;
+  }
+}

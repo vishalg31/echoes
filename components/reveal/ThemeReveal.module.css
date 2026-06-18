@@ -1,0 +1,89 @@
+/* The reveal moment (spec 2.2) — the one dark, cinematic beat.
+   Self-contained dark styling (not theme-driven) so it reads the same for
+   every user; the resolved theme is applied underneath for the game after. */
+
+.screen {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: radial-gradient(circle at 50% 28%, #1a1226 0%, #0d0a14 72%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: 80px 24px;
+}
+
+/* building state */
+.building {
+  position: relative;
+  z-index: 3;
+  text-align: center;
+}
+.buildingText {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  font-size: clamp(20px, 4vw, 30px);
+  background: var(--brand-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  animation: pulse 1.6s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 0.45; }
+  50% { opacity: 1; }
+}
+
+/* album-art bloom behind the titles */
+.bloom {
+  position: absolute;
+  width: 70vw;
+  height: 70vw;
+  max-width: 760px;
+  max-height: 760px;
+  border-radius: 50%;
+  background-size: cover;
+  background-position: center;
+  filter: blur(70px) brightness(0.55) saturate(1.1);
+  transition: opacity 1.5s ease, transform 1.5s ease;
+}
+.bloomFallback {
+  background: radial-gradient(circle at 35% 30%, #9b3c8c 0%, #5e2a6e 35%, #1c1530 70%, transparent 100%);
+}
+.vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at center, transparent 28%, #0d0a14 88%);
+}
+
+.content {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(10px, 2vw, 18px);
+  padding: 0 12px;
+}
+.title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(28px, 7vw, 62px);
+  letter-spacing: -0.02em;
+  color: #f5f2f8;
+  line-height: 1.14;
+  transition: opacity 1s ease, transform 1s ease;
+}
+.final {
+  margin-top: 20px;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: clamp(13px, 1.6vw, 16px);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #e25aa6;
+  transition: opacity 1s ease, transform 1s ease;
+}

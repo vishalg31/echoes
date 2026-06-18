@@ -1,0 +1,75 @@
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(6px);
+  animation: fade 0.2s ease;
+}
+@keyframes fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.card {
+  width: 100%;
+  max-width: 400px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-card);
+  border-radius: 18px;
+  box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.7);
+  padding: 26px 24px 22px;
+  animation: pop 0.22s cubic-bezier(0.2, 0.9, 0.3, 1.1) both;
+}
+@keyframes pop {
+  from { opacity: 0; transform: translateY(10px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  font-size: 22px;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+.message {
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--text-muted);
+  margin-bottom: 22px;
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+}
+.btn {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 12px;
+  border-radius: 11px;
+  transition: all var(--transition);
+}
+.cancel {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+}
+.cancel:hover {
+  border-color: var(--text-faint);
+  color: var(--text-primary);
+}
+.confirm {
+  background: var(--accent-primary);
+  color: #fff;
+}
+.confirm:hover {
+  filter: brightness(1.08);
+}

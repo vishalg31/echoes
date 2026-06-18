@@ -1,0 +1,32 @@
+.wrap {
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
+  max-width: 100%;
+}
+.track {
+  display: inline-flex;
+  white-space: nowrap;
+}
+.seg {
+  flex: 0 0 auto;
+}
+.scroll .seg {
+  /* trailing gap so the looped copy doesn't butt against the original */
+  padding-right: 2.5em;
+}
+.scroll {
+  animation: marquee 11s linear infinite;
+}
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.wrap:hover .scroll {
+  animation-play-state: paused;
+}
+@media (prefers-reduced-motion: reduce) {
+  .scroll {
+    animation: none;
+  }
+}

@@ -1,0 +1,413 @@
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  animation: fade 0.25s ease;
+  overflow-y: auto;
+}
+@keyframes fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.wrap {
+  width: 100%;
+  max-width: 420px;
+}
+
+.card {
+  position: relative;
+  border-radius: 22px;
+  overflow: hidden;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-card);
+  box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.5);
+  isolation: isolate;
+}
+.bg {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  filter: blur(26px) brightness(0.5) saturate(1.1);
+  transform: scale(1.2);
+  z-index: -1;
+}
+.bgTint {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.25), rgba(0, 0, 0, 0.72));
+  z-index: -1;
+}
+
+.inner {
+  display: flex;
+  flex-direction: column;
+  padding: 30px 26px 26px;
+  color: #fff;
+  /* cap to the viewport so a tall profile scrolls inside the card,
+     not the page behind it (leaves room for backdrop padding + Close) */
+  max-height: calc(100vh - 96px);
+  max-height: calc(100dvh - 96px);
+}
+/* kicker + tabs stay pinned; only this body scrolls */
+.tabBody {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.kicker {
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  opacity: 0.8;
+  margin-bottom: 22px;
+}
+/* tabs */
+.tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 22px;
+}
+.tab {
+  flex: 1;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 8px 6px;
+  border-radius: 999px;
+  color: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.1);
+  transition: all var(--transition);
+}
+.tab:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.18);
+}
+.tabOn {
+  color: #161412;
+  background: #fff;
+}
+.tabOn:hover {
+  color: #161412;
+  background: #fff;
+}
+.fade {
+  animation: fade 0.25s ease;
+}
+
+.songs {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 26px;
+}
+.song {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 500;
+  font-size: clamp(24px, 7vw, 34px);
+  line-height: 1.12;
+  color: #fff;
+}
+.badges {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 22px;
+}
+.badge {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 13px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+  backdrop-filter: blur(4px);
+}
+.swatches {
+  display: flex;
+  height: 10px;
+  border-radius: 6px;
+  overflow: hidden;
+}
+.swatch {
+  flex: 1;
+}
+
+.known {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.18);
+}
+.knownTitle {
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.75);
+  margin-bottom: 10px;
+}
+.knownList {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  max-height: 150px;
+  overflow-y: auto;
+}
+.knownItem {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.92);
+  line-height: 1.4;
+}
+.knownItem strong {
+  font-weight: 600;
+}
+.knownMore {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+  margin-top: 4px;
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+.btn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 13px;
+  border-radius: 12px;
+  transition: all var(--transition);
+}
+.primary {
+  background: #fff;
+  color: #161412;
+}
+.primary:hover {
+  opacity: 0.9;
+}
+.secondary {
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+.secondary:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+.close {
+  display: block;
+  margin: 16px auto 0;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.85);
+  background: none;
+}
+.note {
+  text-align: center;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+  margin-top: 10px;
+}
+
+/* shared empty state for the data tabs */
+.emptyMini {
+  font-size: 13px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.78);
+  padding: 24px 4px 12px;
+  text-align: center;
+}
+
+/* ---- Stats tab ---- */
+.totals {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-bottom: 20px;
+}
+.statCell {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 12px 6px;
+  text-align: center;
+}
+.statNum {
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 600;
+  color: #fff;
+  line-height: 1;
+}
+.statCap {
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.65);
+  margin-top: 5px;
+}
+.statBlock {
+  margin-top: 18px;
+}
+.statHead {
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.72);
+  margin-bottom: 10px;
+}
+.bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.barLabel {
+  flex: 0 0 84px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.9);
+  text-transform: capitalize;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.barTrack {
+  flex: 1;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.16);
+  overflow: hidden;
+}
+.barFill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: #fff;
+}
+.barVal {
+  flex: 0 0 auto;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+  min-width: 16px;
+  text-align: right;
+}
+.rare {
+  font-size: 14px;
+  color: #fff;
+}
+.rare strong {
+  font-weight: 600;
+}
+.rareSub {
+  display: block;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.65);
+  margin-top: 3px;
+}
+
+/* ---- Discoveries tab ---- */
+.discList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.discRow {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 8px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.08);
+}
+.discThumb {
+  flex: 0 0 44px;
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  background-size: cover;
+  background-position: center;
+}
+.discMeta {
+  flex: 1;
+  min-width: 0;
+}
+.discTrack {
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.discSub {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.65);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.discBtns {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.iconBtn {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  color: #161412;
+  background: #fff;
+  transition: opacity var(--transition);
+}
+.iconBtn:hover {
+  opacity: 0.85;
+}
+.matchBtn {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 7px 12px;
+  border-radius: 999px;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  transition: background var(--transition);
+}
+.matchBtn:hover {
+  background: rgba(255, 255, 255, 0.26);
+}
+
+/* ---- Chains tab ---- */
+.chainList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.chainCard {
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.08);
+}
+.chainMode {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.65);
+  margin-bottom: 6px;
+}
+.chainSeq {
+  font-size: 13px;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.92);
+}

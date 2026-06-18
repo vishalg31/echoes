@@ -1,0 +1,51 @@
+.wrap {
+  position: relative;
+  width: 100%;
+}
+.input {
+  width: 100%;
+  font-size: clamp(16px, 2vw, 20px);
+  padding: 15px 4px;
+  border: none;
+  border-bottom: 2px solid var(--border);
+  background: transparent;
+  color: var(--text-primary);
+  outline: none;
+  transition: border-color var(--transition);
+}
+.input:focus {
+  border-bottom-color: var(--accent-primary);
+}
+.input::placeholder {
+  color: var(--text-faint);
+}
+.list {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 8px;
+  list-style: none;
+  /* --bg-secondary is opaque in every theme; --card-bg is translucent on dark
+     era themes, which made the dropdown look see-through. */
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-input);
+  box-shadow: 0 18px 40px -16px rgba(0, 0, 0, 0.45);
+  max-height: 264px;
+  overflow-y: auto;
+  z-index: 30;
+}
+.item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 12px 16px;
+  font-size: 15px;
+  color: var(--text-primary);
+  transition: background var(--transition);
+}
+.item:hover {
+  background: var(--accent-soft);
+  color: var(--accent-text);
+}
