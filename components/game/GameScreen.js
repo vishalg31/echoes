@@ -16,11 +16,14 @@ import { searchTracks, profileArt } from "@/lib/api";
 import { buildShareUrl as buildProfileUrl } from "@/lib/storage";
 import { resolveTheme } from "@/lib/themes";
 import { paletteFromImage } from "@/lib/palette";
+import { DEFAULT_THEME } from "@/lib/eras";
 import styles from "./GameScreen.module.css";
 
-const PAGE_DEEP_DEFAULT = "#15101f";
-const PAGE_DEEP2_DEFAULT = "#1c1530";
-const PAGE_ACCENT_RGB_DEFAULT = "155, 60, 140"; // plum, matches globals.css
+// resting page theme when no song mood is active (the 00s default, matches
+// globals.css :root). ProfilePage layers the era theme on top on the home page.
+const PAGE_DEEP_DEFAULT = DEFAULT_THEME.deep;
+const PAGE_DEEP2_DEFAULT = DEFAULT_THEME.deep2;
+const PAGE_ACCENT_RGB_DEFAULT = DEFAULT_THEME.accentRgb;
 
 // signature spring (matches the IPL trump-card feel) + stagger variants
 const MODE_SPRING = { type: "spring", stiffness: 230, damping: 22 };
@@ -110,8 +113,11 @@ export default function GameScreen({
     setProgress(0);
   }
 
-  // page background follows the now-playing song, or the round's top pick
+  // page background follows the now-playing song, or the round's top pick.
+  // Only while in a game — on the home screen ProfilePage owns the theme
+  // (default / era), so we don't fight it here.
   useEffect(() => {
+    if (!mode) return;
     let alive = true;
     const hero = nowPlaying || candidates[0];
     if (hero?.albumArt) {
@@ -122,7 +128,7 @@ export default function GameScreen({
     return () => {
       alive = false;
     };
-  }, [nowPlaying, candidates]);
+  }, [mode, nowPlaying, candidates]);
 
   // reset the page tint when leaving the game
   useEffect(() => () => applyPageMood(null), []);
@@ -379,6 +385,8 @@ export default function GameScreen({
               art={art}
               onReset={onReset}
               onMatchFrom={(seed) => startTaste(seed)}
+              onMatchSeed={(title) => startTasteFromSeed(title)}
+              onDeepDive={(artist) => startDeep(artist)}
               play={
                 <>
                   <div className={styles.modeIntro}>

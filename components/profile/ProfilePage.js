@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Play, Pause, Sparkles, RotateCcw } from "lucide-react";
-import { albumTracks } from "@/lib/api";
+import { albumTracks, songInfo } from "@/lib/api";
 import { ERAS, DEFAULT_DECADE, DEFAULT_THEME, eraTheme } from "@/lib/eras";
 import { getSessions } from "@/lib/db";
 import { genreMap, eraSpread, rarestFind, totals, badges, fmtCount } from "@/lib/fingerprint";
@@ -16,7 +16,7 @@ const TABS = ["Your World", "Play", "Stats"];
 // taste fingerprint + library under Stats. Replaces the old mode-select splash
 // and the profile modal. `play` is the two game cards, passed in from GameScreen
 // so they keep their own state/handlers.
-export default function ProfilePage({ profile, themeLabel, art, play, onReset, onMatchFrom }) {
+export default function ProfilePage({ profile, themeLabel, art, play, onReset, onMatchFrom, onMatchSeed, onDeepDive }) {
   const [tab, setTab] = useState("Your World");
   const [useEra, setUseEra] = useState(false); // default theme vs the user's era theme
   const [sessions, setSessions] = useState([]);
@@ -93,7 +93,7 @@ export default function ProfilePage({ profile, themeLabel, art, play, onReset, o
               onClick={() => setUseEra((v) => !v)}
               title="Switch between the default theme and your era's colours"
             >
-              <Sparkles size={14} /> Theme: {useEra ? ERAS[userDecade].label : DEFAULT_THEME.label}
+              <Sparkles size={14} /> Theme: {useEra ? ERAS[userDecade].label : "Default"}
             </button>
           )}
           <button className={styles.resetBtn} onClick={() => setConfirmReset(true)}>
@@ -107,7 +107,9 @@ export default function ProfilePage({ profile, themeLabel, art, play, onReset, o
         {TABS.map((t) => (
           <button
             key={t}
-            className={`${styles.tab} ${tab === t ? styles.tabOn : ""}`}
+            className={`${styles.tab} ${tab === t ? styles.tabOn : ""} ${
+              t === "Play" && tab !== "Play" ? styles.tabPlay : ""
+            }`}
             onClick={() => setTab(t)}
           >
             {t}
@@ -152,7 +154,15 @@ export default function ProfilePage({ profile, themeLabel, art, play, onReset, o
         />
       )}
 
-      {info && <InfoSheet info={info} onClose={() => setInfo(null)} onMatchFrom={onMatchFrom} />}
+      {info && (
+        <InfoSheet
+          info={info}
+          onClose={() => setInfo(null)}
+          onMatchFrom={onMatchFrom}
+          onMatchSeed={onMatchSeed}
+          onDeepDive={onDeepDive}
+        />
+      )}
     </div>
   );
 }
@@ -247,7 +257,7 @@ function variantsFor(info) {
 // A Wikipedia summary sheet for an artist / album / song. Tries title variants,
 // skips disambiguation pages, shows the extract + a link to the full article.
 // For an album it also lists the tracks, each with a Match button.
-function InfoSheet({ info, onClose, onMatchFrom }) {
+function InfoSheet({ info, onClose, onMatchFrom, onMatchSeed, onDeepDive }) {
   const [data, setData] = useState(undefined); // undefined = loading, null = none
   const [tracks, setTracks] = useState(null); // album tracklist (null = loading)
 
@@ -255,6 +265,13 @@ function InfoSheet({ info, onClose, onMatchFrom }) {
     let alive = true;
     setData(undefined);
     (async () => {
+      // Songs come from iTunes + Last.fm (Wikipedia title-guessing is wrong for
+      // common titles like "Temperature" / "Polly"). Artists/albums stay on Wiki.
+      if (info.type === "song") {
+        const s = await songInfo(info.title, info.artist).catch(() => null);
+        if (alive) setData(s && s.extract ? s : null);
+        return;
+      }
       for (const v of variantsFor(info)) {
         try {
           const r = await fetch(`/api/wiki?title=${encodeURIComponent(v)}`);
@@ -321,6 +338,34 @@ function InfoSheet({ info, onClose, onMatchFrom }) {
           ×
         </button>
         <h3 className={styles.sheetTitle}>{info.title}</h3>
+
+        {info.type === "song" && onMatchSeed && (
+          <div className={styles.sheetActions}>
+            <button
+              className={styles.sheetAction}
+              onClick={() => {
+                onMatchSeed(info.title);
+                onClose();
+              }}
+            >
+              ▶ Play Taste Match from this song
+            </button>
+          </div>
+        )}
+        {info.type === "artist" && onDeepDive && (
+          <div className={styles.sheetActions}>
+            <button
+              className={styles.sheetAction}
+              onClick={() => {
+                onDeepDive(info.title);
+                onClose();
+              }}
+            >
+              ▶ Deep dive into {info.title}
+            </button>
+          </div>
+        )}
+
         {data === undefined && <p className={styles.sheetBody}>Loading…</p>}
         {data === null && (
           <p className={styles.sheetBody}>
@@ -336,9 +381,11 @@ function InfoSheet({ info, onClose, onMatchFrom }) {
               <div className={styles.sheetThumb} style={{ backgroundImage: `url(${data.thumb})` }} />
             )}
             <p className={styles.sheetBody}>{data.extract}</p>
-            <a className={styles.sheetLink} href={data.url} target="_blank" rel="noreferrer">
-              Read more on Wikipedia ↗
-            </a>
+            {data.url && (
+              <a className={styles.sheetLink} href={data.url} target="_blank" rel="noreferrer">
+                {info.type === "song" ? "More on Last.fm ↗" : "Read more on Wikipedia ↗"}
+              </a>
+            )}
           </>
         )}
 
