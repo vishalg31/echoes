@@ -10,12 +10,12 @@
 @property --page-deep {
   syntax: "<color>";
   inherits: true;
-  initial-value: #15101f;
+  initial-value: #101a2e;
 }
 @property --page-deep2 {
   syntax: "<color>";
   inherits: true;
-  initial-value: #1c1530;
+  initial-value: #152544;
 }
 
 :root,
@@ -54,10 +54,11 @@
   --border-card: rgba(225, 180, 255, 0.07);
   --progress-track: rgba(225, 180, 255, 0.14);
 
-  /* Page-mood (set live from album art; these are the resting defaults) */
-  --page-deep: #15101f;
-  --page-deep2: #1c1530;
-  --page-accent-rgb: 155, 60, 140; /* top-glow colour; follows the song when playing */
+  /* Page-mood — resting default is the 00s era theme (Y2K electric blue).
+     Overridden per-era on the profile (lib/eras.js) and per-song during play. */
+  --page-deep: #101a2e;
+  --page-deep2: #152544;
+  --page-accent-rgb: 74, 148, 244; /* top-glow colour; era/song shifts it */
 
   /* Typography */
   --font-display: var(--font-bricolage), "Segoe UI", system-ui, sans-serif;
@@ -109,10 +110,10 @@ body {
   transition: --page-deep var(--transition-slow), --page-deep2 var(--transition-slow);
 }
 
-/* Drifting aurora — two soft blobs that breathe behind everything. One follows
-   the playing song (--page-accent-rgb), the other holds a constant orchid brand
-   tone, so the background stays alive without pulling focus. Reduced-motion
-   freezes them in place (the keyframe is paused, not removed). */
+/* Drifting aurora — two soft blobs that breathe behind everything. Both follow
+   the active theme accent (--page-accent-rgb: era on the profile, song in play),
+   so switching era visibly recolours the whole field. Reduced-motion freezes
+   them in place (the keyframe is paused, not removed). */
 body::before,
 body::after {
   content: "";
@@ -142,7 +143,7 @@ body::after {
   max-height: 640px;
   bottom: -22vh;
   right: -14vw;
-  background: radial-gradient(circle, rgba(226, 90, 166, 0.4), transparent 70%);
+  background: radial-gradient(circle, rgba(var(--page-accent-rgb), 0.4), transparent 70%);
   animation: auroraB 34s ease-in-out infinite alternate;
 }
 @keyframes auroraA {

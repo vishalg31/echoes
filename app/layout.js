@@ -1,5 +1,6 @@
 import { Bricolage_Grotesque, Geist } from "next/font/google";
 import { Analytics } from "@vercel/analytics/react";
+import RhythmWave from "../components/ui/RhythmWave";
 import "./globals.css";
 
 // Identity type system (art-led dark, 2026-06-18):
@@ -66,13 +67,14 @@ export const metadata = {
 export const viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#15101f",
+  themeColor: "#101a2e",
 };
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en" data-theme="neutral-dark">
       <body className={`${bricolage.variable} ${geist.variable}`}>
+        <RhythmWave />
         {children}
         <footer className="siteFooter">
           <p className="siteFooterCredit">Made by Vishal</p>

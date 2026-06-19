@@ -9,6 +9,8 @@
 }
 
 .inner {
+  position: relative;
+  z-index: 1;
   max-width: 640px;
   width: 100%;
 }
@@ -32,6 +34,24 @@
 .brand {
   margin-bottom: 44px;
   animation: qIn 0.6s ease both;
+}
+/* Guitar mark above the wordmark — kept outside the gradient-clipped title so
+   the emoji renders. A slow strum tilt gives it a bit of edge. */
+.brandMark {
+  display: inline-block;
+  font-size: clamp(32px, 7vw, 46px);
+  line-height: 1;
+  margin-bottom: 12px;
+  transform-origin: 65% 35%;
+  filter: drop-shadow(0 8px 20px rgba(var(--page-accent-rgb), 0.4));
+  animation: strum 3.4s ease-in-out infinite;
+}
+@keyframes strum {
+  0%, 100% { transform: rotate(-9deg); }
+  50% { transform: rotate(7deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .brandMark { animation: none; transform: rotate(-6deg); }
 }
 .brandTitle {
   font-family: var(--font-display);
@@ -227,6 +247,19 @@
 @media (max-width: 480px) {
   .decadeGrid {
     grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* On phones the short first screen was vertically centred, leaving a big gap
+   above the wordmark. Top-align and tighten padding so it sits near the top. */
+@media (max-width: 640px) {
+  .screen {
+    align-items: flex-start;
+    padding-top: 44px;
+    padding-bottom: 44px;
+  }
+  .brand {
+    margin-bottom: 30px;
   }
 }
 

@@ -14,6 +14,7 @@ export default function ThemeReveal({ profile, onComplete }) {
   const [step, setStep] = useState(0);
   const [art, setArt] = useState(null);
 
+  const name = (profile?.name || "").trim();
   const titles = (profile?.top_songs?.length ? profile.top_songs : [profile?.favourite_album])
     .filter(Boolean)
     .slice(0, 3);
@@ -71,7 +72,9 @@ export default function ThemeReveal({ profile, onComplete }) {
     <div className={styles.screen}>
       {phase === "building" && (
         <div className={styles.building}>
-          <span className={styles.buildingText}>Building your world…</span>
+          <span className={styles.buildingText}>
+            {name ? `Building your world, ${name}…` : "Building your world…"}
+          </span>
         </div>
       )}
 

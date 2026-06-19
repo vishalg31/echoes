@@ -1,0 +1,51 @@
+/* Ambient equalizer wave — fixed to the bottom, behind all content. Fades out
+   toward the top via a mask so it melts into the page. Colour comes from the
+   active theme accent so it shifts with the era / song. */
+.wrap {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 3px;
+  height: 160px;
+  padding: 0 6px;
+  pointer-events: none;
+  opacity: 0.18;
+  -webkit-mask-image: linear-gradient(to top, #000 0%, transparent 100%);
+  mask-image: linear-gradient(to top, #000 0%, transparent 100%);
+}
+
+.bar {
+  flex: 1 1 0;
+  min-width: 2px;
+  height: 100%;
+  border-radius: 5px 5px 0 0;
+  transform: scaleY(0.12);
+  transform-origin: bottom;
+  background: linear-gradient(
+    to top,
+    rgba(var(--page-accent-rgb), 0.95),
+    rgba(var(--page-accent-rgb), 0.15)
+  );
+  animation-name: eq;
+  animation-iteration-count: infinite;
+  animation-timing-function: ease-in-out;
+  animation-direction: alternate;
+  will-change: transform;
+}
+
+@keyframes eq {
+  0% { transform: scaleY(0.1); }
+  100% { transform: scaleY(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bar {
+    animation: none;
+    transform: scaleY(0.3);
+  }
+}

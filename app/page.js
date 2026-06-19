@@ -5,7 +5,6 @@ import { AnimatePresence, motion } from "framer-motion";
 import OnboardingQuiz from "@/components/onboarding/OnboardingQuiz";
 import ThemeReveal from "@/components/reveal/ThemeReveal";
 import GameScreen from "@/components/game/GameScreen";
-import ProfileCard from "@/components/profile/ProfileCard";
 import { loadProfileFromUrl, loadProfileFromCookie, clearProfile } from "@/lib/storage";
 import { getProfile, saveProfileDb, clearAll, upsertSession } from "@/lib/db";
 import { resolveTheme, applyTheme } from "@/lib/themes";
@@ -13,8 +12,6 @@ import { resolveTheme, applyTheme } from "@/lib/themes";
 export default function Home() {
   const [phase, setPhase] = useState("loading"); // loading | onboarding | reveal | game
   const [profile, setProfile] = useState(null);
-  const [showProfile, setShowProfile] = useState(false);
-  const [seedRequest, setSeedRequest] = useState(null); // {track, artist} from Discoveries → Match
 
   // hydrate on mount: shared URL first, then local Dexie store, then a one-time
   // import of any legacy cookie profile so existing users don't lose anything.
@@ -88,7 +85,6 @@ export default function Home() {
     clearAll();
     clearProfile(); // also drop any legacy cookie
     setProfile(null);
-    setShowProfile(false);
     // clear any ?profile= from the URL
     if (typeof window !== "undefined") window.history.replaceState({}, "", window.location.pathname);
     setPhase("onboarding");
@@ -119,22 +115,8 @@ export default function Home() {
             onKnowSong={handleKnowSong}
             onSaveSong={handleSaveSong}
             onSession={handleSession}
-            onShowProfile={() => setShowProfile(true)}
             onReset={handleReset}
-            seedRequest={seedRequest}
-            onSeedConsumed={() => setSeedRequest(null)}
           />
-          {showProfile && (
-            <ProfileCard
-              profile={profile}
-              onClose={() => setShowProfile(false)}
-              onReset={handleReset}
-              onMatchFrom={(seed) => {
-                setShowProfile(false);
-                setSeedRequest(seed);
-              }}
-            />
-          )}
         </motion.div>
       )}
     </AnimatePresence>

@@ -10,8 +10,9 @@ import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import Equalizer from "@/components/ui/Equalizer";
 import Counter from "@/components/ui/Counter";
 import Marquee from "@/components/ui/Marquee";
+import ProfilePage from "@/components/profile/ProfilePage";
 import { recommendTasteMatch, recommendDeepDive, songId } from "@/lib/recommend";
-import { searchTracks } from "@/lib/api";
+import { searchTracks, profileArt } from "@/lib/api";
 import { buildShareUrl as buildProfileUrl } from "@/lib/storage";
 import { resolveTheme } from "@/lib/themes";
 import { paletteFromImage } from "@/lib/palette";
@@ -54,7 +55,6 @@ export default function GameScreen({
   onKnowSong,
   onSaveSong,
   onSession,
-  onShowProfile,
   onReset,
   seedRequest,
   onSeedConsumed,
@@ -80,6 +80,7 @@ export default function GameScreen({
   const [progress, setProgress] = useState(0);
   const [confirm, setConfirm] = useState(null); // { title, message, confirmLabel, onConfirm }
   const [toast, setToast] = useState(null); // { id, title, sub } milestone celebration
+  const [art, setArt] = useState(null); // profile imagery for the home page
   const isMobile = useIsMobile();
 
   const playedIds = useRef(new Set());
@@ -149,6 +150,17 @@ export default function GameScreen({
     let alive = true;
     resolveTheme(profile)
       .then((t) => alive && setThemeLabel(t?.label || ""))
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, [profile]);
+
+  // load imagery for the home profile page (artist photo, album, song covers)
+  useEffect(() => {
+    let alive = true;
+    profileArt(profile)
+      .then((a) => alive && setArt(a))
       .catch(() => {});
     return () => {
       alive = false;
@@ -342,19 +354,6 @@ export default function GameScreen({
     });
   }
 
-  // home hub "Start over" = wipe profile + chain and redo the questions
-  function handleStartOver() {
-    setConfirm({
-      title: "Start over?",
-      message: "This clears your profile and chain, and takes you back to the questions.",
-      confirmLabel: "Start over",
-      onConfirm: () => {
-        setConfirm(null);
-        onReset?.();
-      },
-    });
-  }
-
   function copyChain() {
     const txt = chain.map((c) => c.track).join(" → ");
     const url = buildProfileUrl(profile);
@@ -367,37 +366,44 @@ export default function GameScreen({
       .catch(() => {});
   }
 
-  // ---------- render: mode select ----------
+  // ---------- render: home = profile page ----------
   if (!mode) {
     return (
       <>
         <div className="pageTexture" />
         <main className={styles.screen}>
           <div className={styles.inner}>
-            <Topbar onShowProfile={onShowProfile} onHome={handleHome} knownCount={known.size} savedCount={saved.size} />
-            <ProfileHub
+            <ProfilePage
               profile={profile}
               themeLabel={themeLabel}
-              knownCount={known.size}
-              onShowProfile={onShowProfile}
-              onStartOver={handleStartOver}
+              art={art}
+              onReset={onReset}
+              onMatchFrom={(seed) => startTaste(seed)}
+              play={
+                <>
+                  <div className={styles.modeIntro}>
+                    <h1>How do you want to explore?</h1>
+                    <p>
+                      Two ways in. Go deep on an artist you already love, or chase the vibe of a
+                      single song across the whole map.
+                    </p>
+                  </div>
+                  <motion.div
+                    className={styles.modeGrid}
+                    variants={MODE_GRID_VARIANTS}
+                    initial="hidden"
+                    animate="show"
+                  >
+                    <DeepDiveCard profile={profile} onStart={startDeep} />
+                    <TasteMatchCard
+                      profile={profile}
+                      onStartTrack={startTaste}
+                      onStartSeed={startTasteFromSeed}
+                    />
+                  </motion.div>
+                </>
+              }
             />
-            <div className={styles.modeIntro}>
-              <h1>How do you want to explore?</h1>
-              <p>
-                Two ways in. Go deep on an artist you already love, or chase the vibe of a
-                single song across the whole map.
-              </p>
-            </div>
-            <motion.div
-              className={styles.modeGrid}
-              variants={MODE_GRID_VARIANTS}
-              initial="hidden"
-              animate="show"
-            >
-              <DeepDiveCard profile={profile} onStart={startDeep} />
-              <TasteMatchCard profile={profile} onStartTrack={startTaste} onStartSeed={startTasteFromSeed} />
-            </motion.div>
           </div>
         </main>
         {confirm && <ConfirmDialog {...confirm} onCancel={() => setConfirm(null)} />}
@@ -418,7 +424,7 @@ export default function GameScreen({
       <div className="pageTexture" />
       <main className={styles.screen}>
         <div className={styles.inner}>
-          <Topbar onShowProfile={onShowProfile} onBack={backToModes} onHome={handleHome} knownCount={known.size} savedCount={saved.size} />
+          <Topbar onHome={handleHome} knownCount={known.size} savedCount={saved.size} />
 
           <div className={styles.roundHead}>
             <span className={styles.eyebrow}>Round {round}</span>
@@ -796,38 +802,6 @@ function CardDeck({ candidates, known, saved, onKnow, onToggleSave, onTellMore, 
   );
 }
 
-// Home hub: a snapshot of the returning user's profile, sitting above the
-// two mode cards. Shows their artist, seed song, era/theme name, known count,
-// plus a Start over action that redoes onboarding.
-function ProfileHub({ profile, themeLabel, knownCount = 0, onShowProfile, onStartOver }) {
-  const artist = profile?.favourite_artist;
-  const seed = profile?.top_songs?.[0] || profile?.favourite_album;
-  return (
-    <section className={styles.hub}>
-      <div className={styles.hubMain}>
-        <span className={styles.hubKicker}>Welcome back</span>
-        {artist && <h2 className={styles.hubName}>{artist}</h2>}
-        <div className={styles.hubMeta}>
-          {seed && <span className={styles.hubChip}>Seed · {seed}</span>}
-          {themeLabel && <span className={styles.hubChip}>{themeLabel}</span>}
-          {knownCount > 0 && (
-            <button
-              className={`${styles.hubChip} ${styles.hubChipBtn}`}
-              onClick={onShowProfile}
-              title="See the songs you know"
-            >
-              ★ <Counter value={knownCount} /> known
-            </button>
-          )}
-        </div>
-      </div>
-      <button className={styles.hubReset} onClick={onStartOver}>
-        Start over
-      </button>
-    </section>
-  );
-}
-
 // Persistent now-playing strip — the always-there "this is a music app" anchor.
 // Tinted live by the playing song's album-art mood (--page-accent).
 function NowPlayingBar({ card, playing, progress, onToggle, onClose }) {
@@ -864,39 +838,28 @@ function NowPlayingBar({ card, playing, progress, onToggle, onClose }) {
   );
 }
 
-function Topbar({ onShowProfile, onBack, onHome, knownCount = 0, savedCount = 0 }) {
+// In-round top bar. The wordmark returns to your profile (confirming first so a
+// live chain isn't lost). The known/saved counts are quiet status, not buttons.
+function Topbar({ onHome, knownCount = 0, savedCount = 0 }) {
   const hidden = useHideOnScroll();
   return (
     <header className={`${styles.topbar} ${hidden ? styles.topbarHidden : ""}`}>
-      <button className={styles.wordmark} onClick={onHome} title="Home">
+      <button className={styles.wordmark} onClick={onHome} title="Back to your profile">
         Echoes
       </button>
       <div className={styles.topActions}>
         {knownCount > 0 && (
-          <button
-            className={`${styles.knownChip} ${styles.knownChipBtn}`}
-            onClick={onShowProfile}
-            title="See the songs you know"
-          >
+          <span className={styles.knownChip}>
             <Star size={13} fill="currentColor" strokeWidth={0} /> <Counter value={knownCount} /> known
-          </button>
+          </span>
         )}
         {savedCount > 0 && (
-          <button
-            className={`${styles.knownChip} ${styles.savedChip} ${styles.knownChipBtn}`}
-            onClick={onShowProfile}
-            title="See the songs you saved for later"
-          >
+          <span className={`${styles.knownChip} ${styles.savedChip}`}>
             <Bookmark size={13} /> <Counter value={savedCount} /> saved
-          </button>
+          </span>
         )}
-        {onBack && (
-          <button className={styles.ghostBtn} onClick={onBack}>
-            <ChevronLeft size={15} /> Modes
-          </button>
-        )}
-        <button className={styles.ghostBtn} onClick={onShowProfile}>
-          My profile
+        <button className={styles.ghostBtn} onClick={onHome}>
+          <ChevronLeft size={15} /> Profile
         </button>
       </div>
     </header>

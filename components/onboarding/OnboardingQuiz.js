@@ -5,13 +5,14 @@ import { DECADES, emptyProfile } from "@/lib/profile";
 import { searchArtists, searchTracks, searchAlbums } from "@/lib/api";
 import styles from "./OnboardingQuiz.module.css";
 
-const TOTAL = 4;
+const TOTAL = 5;
 
-// Which live search each step runs (iTunes). Step 3 is the decade grid (no search).
+// Which live search each step runs (iTunes). Step 0 (name) and step 4 (decade)
+// have no search.
 function searchKindFor(step) {
-  if (step === 0) return "artist";
-  if (step === 1) return "track";
-  if (step === 2) return "album";
+  if (step === 1) return "artist";
+  if (step === 2) return "track";
+  if (step === 3) return "album";
   return null;
 }
 
@@ -31,7 +32,7 @@ export default function OnboardingQuiz({ onComplete }) {
   // On the songs question, a typed-but-not-yet-added song counts — commit it
   // when the user presses Next so they don't have to press Enter first.
   function commitPendingSong() {
-    if (step !== 1) return;
+    if (step !== 2) return;
     const clean = text.trim();
     if (!clean || answers.top_songs.length >= 3) return;
     if (answers.top_songs.some((s) => s.toLowerCase() === clean.toLowerCase())) return;
@@ -55,7 +56,7 @@ export default function OnboardingQuiz({ onComplete }) {
     setStep((s) => Math.max(0, s - 1));
   }
 
-  // album (step 2) is optional — clear it and move on
+  // album (step 3) is optional — clear it and move on
   function skipAlbum() {
     set("favourite_album", "");
     setText("");
@@ -117,12 +118,14 @@ export default function OnboardingQuiz({ onComplete }) {
   const canAdvance = (() => {
     switch (step) {
       case 0:
-        return answers.favourite_artist.trim().length > 0;
+        return true; // name is optional
       case 1:
-        return answers.top_songs.length > 0 || text.trim().length > 0;
+        return answers.favourite_artist.trim().length > 0;
       case 2:
-        return true; // album is optional
+        return answers.top_songs.length > 0 || text.trim().length > 0;
       case 3:
+        return true; // album is optional
+      case 4:
         return answers.decade.length > 0;
       default:
         return false;
@@ -131,14 +134,20 @@ export default function OnboardingQuiz({ onComplete }) {
 
   const isLast = step === TOTAL - 1;
 
+  // Enter on a text question advances (when the step allows it)
+  const onEnterAdvance = () => {
+    if (canAdvance) goNext();
+  };
+
   return (
     <div className={styles.screen}>
       <div className={styles.inner}>
         {step === 0 && (
           <div className={styles.brand}>
+            <span className={styles.brandMark} aria-hidden>🎸</span>
             <h1 className={styles.brandTitle}>Echoes</h1>
             <p className={styles.brandTagline}>
-              A music discovery game shaped by your taste. Answer four quick questions and
+              A music discovery game shaped by your taste. Answer a few quick questions and
               we&rsquo;ll build you a world to explore.
             </p>
           </div>
@@ -158,6 +167,30 @@ export default function OnboardingQuiz({ onComplete }) {
         {/* key on step so the entrance animation replays each question */}
         <div className={styles.question} key={step}>
           {step === 0 && (
+            <TextQuestion
+              heading={<>First things first,<br />what should we call you?</>}
+              sub="A name or nickname for your profile. You can skip this."
+              optional
+              placeholder="Your name or nickname…"
+              value={answers.name}
+              text={text}
+              setText={setText}
+              suggestions={[]}
+              searching={false}
+              onPick={(v) => {
+                set("name", v);
+                setText(v);
+                setPicked(v);
+              }}
+              onType={(v) => {
+                setText(v);
+                set("name", v);
+              }}
+              onEnter={onEnterAdvance}
+            />
+          )}
+
+          {step === 1 && (
             <TextQuestion
               heading={<>Who&rsquo;s your favourite<br />artist or band?</>}
               sub="This tunes your very first set of discoveries, you can explore further later."
@@ -179,7 +212,7 @@ export default function OnboardingQuiz({ onComplete }) {
             />
           )}
 
-          {step === 1 && (
+          {step === 2 && (
             <MultiSongQuestion
               songs={answers.top_songs}
               text={text}
@@ -199,7 +232,7 @@ export default function OnboardingQuiz({ onComplete }) {
             />
           )}
 
-          {step === 2 && (
+          {step === 3 && (
             <TextQuestion
               heading={<>What&rsquo;s your<br />favourite album?</>}
               sub="We&rsquo;ll use its cover in your reveal moment and profile card. Skip if none comes to mind."
@@ -222,7 +255,7 @@ export default function OnboardingQuiz({ onComplete }) {
             />
           )}
 
-          {step === 3 && (
+          {step === 4 && (
             <DecadeQuestion
               selected={answers.decade}
               onSelect={(d) => set("decade", d)}
@@ -235,7 +268,7 @@ export default function OnboardingQuiz({ onComplete }) {
             ← Back
           </button>
           <div className={styles.rightActions}>
-            {step === 2 && (
+            {step === 3 && (
               <button className={styles.skip} onClick={skipAlbum}>
                 Skip
               </button>
@@ -252,7 +285,7 @@ export default function OnboardingQuiz({ onComplete }) {
 
 /* ---------- sub-components ---------- */
 
-function TextQuestion({ heading, sub, optional, placeholder, text, suggestions, searching, onPick, onType }) {
+function TextQuestion({ heading, sub, optional, placeholder, text, suggestions, searching, onPick, onType, onEnter }) {
   return (
     <>
       <h1 className={styles.heading}>
@@ -267,6 +300,14 @@ function TextQuestion({ heading, sub, optional, placeholder, text, suggestions, 
           value={text}
           autoFocus
           onChange={(e) => onType(e.target.value)}
+          onKeyDown={(e) => {
+            // Enter advances only where onEnter is wired (name step). Artist /
+            // album have no Enter shortcut — pick from the dropdown instead.
+            if (e.key === "Enter" && onEnter) {
+              e.preventDefault();
+              onEnter();
+            }
+          }}
         />
         {suggestions.length > 0 && (
           <div className={styles.suggestionList}>
