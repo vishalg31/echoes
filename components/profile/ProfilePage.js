@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Play, Pause, Sparkles, RotateCcw } from "lucide-react";
-import { albumTracks, songInfo } from "@/lib/api";
+import { albumTracks, songInfo, albumInfo } from "@/lib/api";
 import { ERAS, DEFAULT_DECADE, DEFAULT_THEME, eraTheme } from "@/lib/eras";
 import { getSessions } from "@/lib/db";
 import { genreMap, eraSpread, rarestFind, totals, badges, fmtCount } from "@/lib/fingerprint";
@@ -265,11 +265,17 @@ function InfoSheet({ info, onClose, onMatchFrom, onMatchSeed, onDeepDive }) {
     let alive = true;
     setData(undefined);
     (async () => {
-      // Songs come from iTunes + Last.fm (Wikipedia title-guessing is wrong for
-      // common titles like "Temperature" / "Polly"). Artists/albums stay on Wiki.
+      // Songs and albums come from iTunes + Last.fm (Wikipedia title-guessing is
+      // wrong for common titles like "Temperature" / "Polly" / "Revolver", which
+      // resolve to the physics / name / firearm articles). Artists stay on Wiki.
       if (info.type === "song") {
         const s = await songInfo(info.title, info.artist).catch(() => null);
         if (alive) setData(s && s.extract ? s : null);
+        return;
+      }
+      if (info.type === "album") {
+        const a = await albumInfo(info.album || info.title, info.artists || []).catch(() => null);
+        if (alive) setData(a && a.extract ? a : null);
         return;
       }
       for (const v of variantsFor(info)) {
@@ -383,7 +389,7 @@ function InfoSheet({ info, onClose, onMatchFrom, onMatchSeed, onDeepDive }) {
             <p className={styles.sheetBody}>{data.extract}</p>
             {data.url && (
               <a className={styles.sheetLink} href={data.url} target="_blank" rel="noreferrer">
-                {info.type === "song" ? "More on Last.fm ↗" : "Read more on Wikipedia ↗"}
+                {info.type === "artist" ? "Read more on Wikipedia ↗" : "More on Last.fm ↗"}
               </a>
             )}
           </>

@@ -127,15 +127,6 @@ export default function SongCard({
           {card.artist}
           {card.year ? ` · ${card.year}` : ""}
         </p>
-        {card.tags?.length > 0 && (
-          <div className={styles.tags}>
-            {card.tags.slice(0, 3).map((t) => (
-              <span key={t} className={styles.tag}>
-                {t}
-              </span>
-            ))}
-          </div>
-        )}
         {card.why && <p className={styles.why}>{card.why}</p>}
 
         <div className={styles.actions}>
@@ -155,7 +146,7 @@ export default function SongCard({
           </button>
           {onSkip && (
             <button className={`${styles.action} ${styles.actSkip}`} onClick={onSkip}>
-              <SkipForward size={15} /> Not for me
+              <SkipForward size={15} /> Skip
             </button>
           )}
           <button className={`${styles.action} ${styles.actMore}`} onClick={onTellMore}>

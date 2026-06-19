@@ -1,17 +1,19 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { X } from "lucide-react";
 import { searchArtists, searchTracks } from "@/lib/api";
 import styles from "./SearchInput.module.css";
 
 // Autocomplete for "artist" or "track". onSelect returns:
 //   kind="artist" → string
 //   kind="track"  → { track, artist }
-export default function SearchInput({ kind, initial = "", placeholder, onSelect, onSubmitFree }) {
+export default function SearchInput({ kind, initial = "", placeholder, onSelect, onSubmitFree, onClear }) {
   const [q, setQ] = useState(initial);
   const [items, setItems] = useState([]);
   const [open, setOpen] = useState(false);
   const timer = useRef(null);
+  const inputRef = useRef(null);
   // don't pop the dropdown for the pre-filled value — only once the user types
   const typed = useRef(false);
 
@@ -46,6 +48,16 @@ export default function SearchInput({ kind, initial = "", placeholder, onSelect,
     onSelect?.(item.value);
   }
 
+  // wipe the field and any pending selection, then refocus to keep typing
+  function clear() {
+    typed.current = false;
+    setQ("");
+    setItems([]);
+    setOpen(false);
+    onClear?.();
+    inputRef.current?.focus();
+  }
+
   function handleKey(e) {
     if (e.key === "Enter") {
       e.preventDefault();
@@ -56,18 +68,34 @@ export default function SearchInput({ kind, initial = "", placeholder, onSelect,
 
   return (
     <div className={styles.wrap}>
-      <input
-        className={styles.input}
-        placeholder={placeholder}
-        value={q}
-        onChange={(e) => {
-          typed.current = true;
-          setQ(e.target.value);
-        }}
-        onKeyDown={handleKey}
-        onFocus={() => items.length && setOpen(true)}
-        onBlur={() => setTimeout(() => setOpen(false), 120)}
-      />
+      <div className={styles.field}>
+        <input
+          ref={inputRef}
+          className={styles.input}
+          placeholder={placeholder}
+          value={q}
+          onChange={(e) => {
+            typed.current = true;
+            setQ(e.target.value);
+          }}
+          onKeyDown={handleKey}
+          onFocus={() => items.length && setOpen(true)}
+          onBlur={() => setTimeout(() => setOpen(false), 120)}
+        />
+        {q && (
+          <button
+            type="button"
+            className={styles.clearBtn}
+            // onMouseDown so the input's onBlur doesn't fire first and swallow it
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={clear}
+            title="Clear"
+            aria-label="Clear search"
+          >
+            <X size={16} />
+          </button>
+        )}
+      </div>
       {open && items.length > 0 && (
         <ul className={styles.list}>
           {items.map((it, i) => (

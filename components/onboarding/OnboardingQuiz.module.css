@@ -1,11 +1,13 @@
 /* Onboarding quiz — ported & extended from echoes_prototype.tsx (light direction) */
 
+/* Top-align every step so each question lands at the top of the viewport,
+   not floated into the vertical middle (which looked off on tablets). */
 .screen {
   min-height: 100vh;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
-  padding: 60px 24px;
+  padding: 64px 24px;
 }
 
 .inner {

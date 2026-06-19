@@ -133,6 +133,12 @@ export default function GameScreen({
   // reset the page tint when leaving the game
   useEffect(() => () => applyPageMood(null), []);
 
+  // Entering a game (or returning home) should start at the top, not wherever
+  // the user had scrolled to tap the mode button down the Play tab.
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "auto" });
+  }, [mode]);
+
   function genSessionId() {
     return typeof crypto !== "undefined" && crypto.randomUUID
       ? crypto.randomUUID()
@@ -642,16 +648,21 @@ function useHideOnScroll(threshold = 8) {
   return hidden;
 }
 
-// true on phone-width screens. SSR-safe: false until mounted, then live.
-function useIsMobile(maxWidth = 600) {
+// Use the swipe deck on phones, and on touch tablets held in portrait (an iPad
+// in portrait reads as a tall card deck; rotate it to landscape and it gets the
+// roomier desktop grid). Desktops always get the grid. SSR-safe: false until
+// mounted, then live.
+function useIsMobile() {
   const [m, setM] = useState(false);
   useEffect(() => {
-    const mq = window.matchMedia(`(max-width: ${maxWidth}px)`);
+    const mq = window.matchMedia(
+      "(max-width: 600px), (hover: none) and (orientation: portrait)"
+    );
     const update = () => setM(mq.matches);
     update();
     mq.addEventListener("change", update);
     return () => mq.removeEventListener("change", update);
-  }, [maxWidth]);
+  }, []);
   return m;
 }
 
@@ -898,6 +909,7 @@ function DeepDiveCard({ profile, onStart }) {
         placeholder="Search an artist…"
         onSelect={(a) => setArtist(a)}
         onSubmitFree={(a) => setArtist(a)}
+        onClear={() => setArtist("")}
       />
       <button
         className={styles.startBtn}
@@ -955,6 +967,7 @@ function TasteMatchCard({ profile, onStartTrack, onStartSeed }) {
         initial={seed}
         placeholder="Search a song…"
         onSelect={(t) => setPicked(t)}
+        onClear={() => setPicked(null)}
       />
       {picked && (
         <p className={styles.seedNote}>

@@ -6,6 +6,8 @@ import { searchArtists, searchTracks, searchAlbums } from "@/lib/api";
 import styles from "./OnboardingQuiz.module.css";
 
 const TOTAL = 5;
+// short beat after a selection so the pick visibly registers before we advance
+const ADVANCE_DELAY = 280;
 
 // Which live search each step runs (iTunes). Step 0 (name) and step 4 (decade)
 // have no search.
@@ -29,6 +31,11 @@ export default function OnboardingQuiz({ onComplete }) {
     setAnswers((a) => ({ ...a, [field]: value }));
   }
 
+  // Each step should land at the top, never scrolled into the middle.
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "auto" });
+  }, [step]);
+
   // On the songs question, a typed-but-not-yet-added song counts — commit it
   // when the user presses Next so they don't have to press Enter first.
   function commitPendingSong() {
@@ -50,6 +57,19 @@ export default function OnboardingQuiz({ onComplete }) {
     }
   }
 
+  // Auto-advance the moment a choice is made (artist picked, 3rd song added,
+  // decade chosen) without waiting for Next. Clears the working text and steps
+  // forward via a functional update so it never reads stale state. On the final
+  // step it finishes, merging the just-picked value so the profile is complete.
+  function advanceFromChoice(extra) {
+    setTimeout(() => {
+      setText("");
+      setPicked("");
+      if (step < TOTAL - 1) setStep((s) => s + 1);
+      else finish(extra);
+    }, ADVANCE_DELAY);
+  }
+
   function goBack() {
     setText("");
     setPicked("");
@@ -64,9 +84,11 @@ export default function OnboardingQuiz({ onComplete }) {
     setStep((s) => s + 1);
   }
 
-  function finish() {
+  function finish(extra) {
     // Theme is derived later (theming step); ship the captured answers as-is.
-    const profile = { ...answers };
+    // `extra` carries a value picked in the same tick (state hasn't committed
+    // yet), e.g. the decade chosen on the last step.
+    const profile = { ...answers, ...(extra || {}) };
     onComplete?.(profile);
   }
 
@@ -168,7 +190,7 @@ export default function OnboardingQuiz({ onComplete }) {
         <div className={styles.question} key={step}>
           {step === 0 && (
             <TextQuestion
-              heading={<>First things first,<br />what should we call you?</>}
+              heading={<>What should we<br />call you, Rockstar?</>}
               sub="A name or nickname for your profile. You can skip this."
               optional
               placeholder="Your name or nickname…"
@@ -204,6 +226,7 @@ export default function OnboardingQuiz({ onComplete }) {
                 set("favourite_artist", v);
                 setText(v);
                 setPicked(v);
+                advanceFromChoice(); // picking the artist moves on
               }}
               onType={(v) => {
                 setText(v);
@@ -223,8 +246,10 @@ export default function OnboardingQuiz({ onComplete }) {
                 const clean = v.trim();
                 if (!clean || answers.top_songs.length >= 3) return;
                 if (answers.top_songs.some((s) => s.toLowerCase() === clean.toLowerCase())) return;
-                set("top_songs", [...answers.top_songs, clean]);
+                const next = [...answers.top_songs, clean];
+                set("top_songs", next);
                 setText("");
+                if (next.length >= 3) advanceFromChoice(); // third song moves on
               }}
               onRemove={(i) =>
                 set("top_songs", answers.top_songs.filter((_, idx) => idx !== i))
@@ -258,7 +283,10 @@ export default function OnboardingQuiz({ onComplete }) {
           {step === 4 && (
             <DecadeQuestion
               selected={answers.decade}
-              onSelect={(d) => set("decade", d)}
+              onSelect={(d) => {
+                set("decade", d);
+                advanceFromChoice({ decade: d }); // choosing the era builds the world
+              }}
             />
           )}
         </div>
@@ -339,6 +367,12 @@ function TextQuestion({ heading, sub, optional, placeholder, text, suggestions, 
 
 function MultiSongQuestion({ songs, text, setText, suggestions, searching, onAdd, onRemove }) {
   const full = songs.length >= 3;
+  const inputRef = useRef(null);
+  // focus without scrolling, same as the other steps, so the question stays at
+  // the top instead of the input jumping into the middle of the viewport.
+  useEffect(() => {
+    inputRef.current?.focus({ preventScroll: true });
+  }, []);
   return (
     <>
       <h1 className={styles.heading}>
@@ -367,10 +401,10 @@ function MultiSongQuestion({ songs, text, setText, suggestions, searching, onAdd
 
       <div className={styles.inputWrap}>
         <input
+          ref={inputRef}
           className={styles.input}
           placeholder={full ? "That's three, nicely done." : "Type a song…"}
           value={text}
-          autoFocus
           disabled={full}
           onChange={(e) => setText(e.target.value)}
           onKeyDown={(e) => {

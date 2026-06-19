@@ -2,16 +2,39 @@
   position: relative;
   width: 100%;
 }
+/* holds the input + clear button so the X sits inside the field; the dropdown
+   list stays a child of .wrap so it spans the full width below. */
+.field {
+  position: relative;
+  width: 100%;
+}
 .input {
   width: 100%;
   font-size: clamp(16px, 2vw, 20px);
-  padding: 15px 4px;
+  padding: 15px 36px 15px 4px;
   border: none;
   border-bottom: 2px solid var(--border);
   background: transparent;
   color: var(--text-primary);
   outline: none;
   transition: border-color var(--transition);
+}
+.clearBtn {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  color: var(--text-faint);
+  transition: color var(--transition), background var(--transition);
+}
+.clearBtn:hover {
+  color: var(--text-primary);
+  background: var(--accent-soft);
 }
 .input:focus {
   border-bottom-color: var(--accent-primary);

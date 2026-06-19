@@ -56,6 +56,7 @@
 .resetBtn {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
   font-size: 13px;
   font-weight: 500;
@@ -65,6 +66,12 @@
   color: var(--text-muted);
   background: transparent;
   transition: all var(--transition);
+}
+/* fixed width so switching the label ("Default" ↔ the era) doesn't change the
+   row's total width and bump the actions between wrapping below the greeting
+   and sitting beside it. */
+.colorToggle {
+  min-width: 142px;
 }
 .colorToggle:hover {
   border-color: var(--pa, var(--accent-primary));

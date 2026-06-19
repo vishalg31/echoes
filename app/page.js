@@ -82,11 +82,18 @@ export default function Home() {
   }
 
   function handleReset() {
-    clearAll();
+    clearAll(); // wipe Dexie (profile + sessions)
     clearProfile(); // also drop any legacy cookie
-    setProfile(null);
-    // clear any ?profile= from the URL
-    if (typeof window !== "undefined") window.history.replaceState({}, "", window.location.pathname);
+    // clear any ?profile= from the URL and land the quiz at the top
+    if (typeof window !== "undefined") {
+      window.history.replaceState({}, "", window.location.pathname);
+      window.scrollTo({ top: 0, behavior: "auto" });
+    }
+    // Note: we deliberately do NOT null `profile` here. With AnimatePresence
+    // mode="wait" the game screen stays mounted through its exit animation, and
+    // clearing the profile mid-exit makes the home screen visibly empty out
+    // (name gone, tiles blank) before it fades — looks stuck. Persistence is
+    // already wiped above; the next quiz completion replaces the in-memory copy.
     setPhase("onboarding");
   }
 
