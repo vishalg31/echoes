@@ -286,6 +286,13 @@ export default function OnboardingQuiz({ onComplete }) {
 /* ---------- sub-components ---------- */
 
 function TextQuestion({ heading, sub, optional, placeholder, text, suggestions, searching, onPick, onType, onEnter }) {
+  const inputRef = useRef(null);
+  // focus without scrolling, so landing on step 0 keeps the Echoes branding in
+  // view instead of jumping the input into focus (autoFocus would scroll).
+  useEffect(() => {
+    inputRef.current?.focus({ preventScroll: true });
+  }, []);
+
   return (
     <>
       <h1 className={styles.heading}>
@@ -295,10 +302,10 @@ function TextQuestion({ heading, sub, optional, placeholder, text, suggestions, 
       <p className={styles.sub}>{sub}</p>
       <div className={styles.inputWrap}>
         <input
+          ref={inputRef}
           className={styles.input}
           placeholder={placeholder}
           value={text}
-          autoFocus
           onChange={(e) => onType(e.target.value)}
           onKeyDown={(e) => {
             // Enter advances only where onEnter is wired (name step). Artist /
