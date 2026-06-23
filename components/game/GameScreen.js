@@ -366,16 +366,29 @@ export default function GameScreen({
     });
   }
 
-  function copyChain() {
+  async function shareChain() {
     const txt = chain.map((c) => c.track).join(" → ");
     const url = buildProfileUrl(profile);
-    navigator.clipboard
-      ?.writeText(`My Echoes chain: ${txt}\n${url}`)
-      .then(() => {
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-      })
-      .catch(() => {});
+    const message = `My Echoes chain: ${txt}`;
+
+    // Native share sheet where the device has one (phones, tablets, most Safari).
+    // This is the real share: WhatsApp, Messages, Mail, AirDrop, etc.
+    if (typeof navigator !== "undefined" && navigator.share) {
+      try {
+        await navigator.share({ title: "My Echoes chain", text: message, url });
+        return;
+      } catch (err) {
+        // User dismissed the sheet — leave it. Only fall through on a real failure.
+        if (err?.name === "AbortError") return;
+      }
+    }
+
+    // Desktop fallback: copy to clipboard with a brief confirmation.
+    try {
+      await navigator.clipboard?.writeText(`${message}\n${url}`);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {}
   }
 
   // ---------- render: home = profile page ----------
@@ -521,7 +534,7 @@ export default function GameScreen({
             <div className={styles.chain}>
               <div className={styles.chainHead}>
                 <span className={styles.chainLabel}>Your session chain</span>
-                <button className={styles.ghostBtn} onClick={copyChain}>
+                <button className={styles.ghostBtn} onClick={shareChain}>
                   {copied ? (
                     <>
                       <Check size={14} /> Copied

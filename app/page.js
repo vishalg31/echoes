@@ -88,6 +88,10 @@ export default function Home() {
     if (typeof window !== "undefined") {
       window.history.replaceState({}, "", window.location.pathname);
       window.scrollTo({ top: 0, behavior: "auto" });
+      // a fresh start is a new user — re-arm the first-run helper
+      try {
+        localStorage.removeItem("echoes_tour_seen");
+      } catch {}
     }
     // Note: we deliberately do NOT null `profile` here. With AnimatePresence
     // mode="wait" the game screen stays mounted through its exit animation, and

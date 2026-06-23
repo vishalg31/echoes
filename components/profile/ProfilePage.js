@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Play, Pause, Sparkles, RotateCcw } from "lucide-react";
+import { Play, Pause, Sparkles, RotateCcw, Compass } from "lucide-react";
 import { albumTracks, songInfo, albumInfo } from "@/lib/api";
 import { ERAS, DEFAULT_DECADE, DEFAULT_THEME, eraTheme } from "@/lib/eras";
 import { getSessions } from "@/lib/db";
@@ -12,16 +12,37 @@ import styles from "./ProfilePage.module.css";
 
 const TABS = ["Your World", "Play", "Stats"];
 
+// localStorage flag so the first-run helper shows once. "Start over" clears it
+// (see handleReset in app/page.js) so a fresh profile sees the tour again.
+const TOUR_KEY = "echoes_tour_seen";
+
 // The post-quiz home: your world up top, the two games behind the Play tab, your
 // taste fingerprint + library under Stats. Replaces the old mode-select splash
 // and the profile modal. `play` is the two game cards, passed in from GameScreen
 // so they keep their own state/handlers.
 export default function ProfilePage({ profile, themeLabel, art, play, onReset, onMatchFrom, onMatchSeed, onDeepDive }) {
   const [tab, setTab] = useState("Your World");
-  const [useEra, setUseEra] = useState(false); // default theme vs the user's era theme
+  const [useEra, setUseEra] = useState(true); // land in the user's era theme; toggle to the neutral default
   const [sessions, setSessions] = useState([]);
   const [confirmReset, setConfirmReset] = useState(false);
   const [info, setInfo] = useState(null); // { title, variants } for the Wikipedia sheet
+  const [showTour, setShowTour] = useState(false); // first-run "where are the games" helper
+
+  // show the helper once per profile (checked client-side to avoid a hydration
+  // mismatch). Dismissing or jumping to Play marks it seen.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      if (!localStorage.getItem(TOUR_KEY)) setShowTour(true);
+    } catch {}
+  }, []);
+
+  function dismissTour() {
+    setShowTour(false);
+    try {
+      localStorage.setItem(TOUR_KEY, "1");
+    } catch {}
+  }
 
   const name = (profile?.name || "").trim();
   const artistName = profile?.favourite_artist || "";
@@ -45,7 +66,7 @@ export default function ProfilePage({ profile, themeLabel, art, play, onReset, o
     };
   }, []);
 
-  // wash the page in the active theme (default 00s, or the user's era when toggled)
+  // wash the page in the active theme (the user's era by default, the neutral 00s when toggled off)
   useEffect(() => {
     if (typeof document === "undefined") return;
     const root = document.documentElement.style;
@@ -116,6 +137,48 @@ export default function ProfilePage({ profile, themeLabel, art, play, onReset, o
           </button>
         ))}
       </div>
+
+      {/* first-run helper: points new users to the two games behind Play.
+          Hidden once they're on Play (the cards speak for themselves there). */}
+      <AnimatePresence>
+        {showTour && tab !== "Play" && (
+          <motion.div
+            className={styles.tour}
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <button className={styles.tourClose} onClick={dismissTour} aria-label="Dismiss">
+              ×
+            </button>
+            <div className={styles.tourIcon} aria-hidden>
+              <Compass size={18} />
+            </div>
+            <div className={styles.tourBody}>
+              <div className={styles.tourTitle}>New here? Start in Play</div>
+              <p className={styles.tourText}>
+                Two ways in. <strong>Artist Deep Dive</strong> goes deep on an artist you already
+                love. <strong>Taste Match</strong> chases one song&rsquo;s vibe across the whole map.
+              </p>
+              <div className={styles.tourActions}>
+                <button
+                  className={styles.tourGo}
+                  onClick={() => {
+                    setTab("Play");
+                    dismissTour();
+                  }}
+                >
+                  <Play size={14} /> Take me to Play
+                </button>
+                <button className={styles.tourSkip} onClick={dismissTour}>
+                  Maybe later
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <AnimatePresence mode="wait">
         <motion.div

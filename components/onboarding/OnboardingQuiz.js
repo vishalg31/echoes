@@ -238,6 +238,7 @@ export default function OnboardingQuiz({ onComplete }) {
           {step === 2 && (
             <MultiSongQuestion
               songs={answers.top_songs}
+              artist={answers.favourite_artist}
               text={text}
               setText={setText}
               suggestions={suggestions}
@@ -365,8 +366,9 @@ function TextQuestion({ heading, sub, optional, placeholder, text, suggestions, 
   );
 }
 
-function MultiSongQuestion({ songs, text, setText, suggestions, searching, onAdd, onRemove }) {
+function MultiSongQuestion({ songs, artist, text, setText, suggestions, searching, onAdd, onRemove }) {
   const full = songs.length >= 3;
+  const artistName = (artist || "").trim();
   const inputRef = useRef(null);
   // focus without scrolling, same as the other steps, so the question stays at
   // the top instead of the input jumping into the middle of the viewport.
@@ -379,7 +381,8 @@ function MultiSongQuestion({ songs, text, setText, suggestions, searching, onAdd
         Three songs<br />you love.
       </h1>
       <p className={styles.sub}>
-        These come back to you in your reveal moment. Add up to three. Pick from the list, or type and press Enter.
+        Any three, by any artists{artistName ? `, not only ${artistName}` : ""}. These come back to
+        you in your reveal moment. Pick from the list, or type and press Enter.
       </p>
 
       {songs.length > 0 && (
